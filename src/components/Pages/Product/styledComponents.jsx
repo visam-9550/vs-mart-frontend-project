@@ -30,11 +30,11 @@ export const Input = styled.input`
     outline: none;
     border-radius: 3px;
 `
-export const Loader = styled.h1`
+export const Loader = styled.p`
     type:spin; 
-    color:#3498db;
-     height:50;
-      width: 50; 
+    color:rgb(172, 150, 6);
+    font-size: 20px;
+    text-align: center;
 `
 export const PaginationContainer = styled.div`
     display: flex;

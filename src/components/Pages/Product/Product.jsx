@@ -1,15 +1,20 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { ProductsContainer, PaginationContainer, LeftButton, RightButton, NoProductsFoundContainer,Loader, NoProductsFoundHeading, NoProductsFoundImage, NoProductsFoundDescription } from './styledComponents';
-import ProductItem from '../ProductItem/ProductItem';
 import { useSelector, useDispatch } from 'react-redux';
-import ProductSlice from '../../Redux/Slices/ProductSlice';
 import { FaPlus, FaMinus } from "react-icons/fa";
-import PaginationSlice from '../../Redux/Slices/PaginationSlice';
 import Loading from "react-loading";
+import ProductItem from '../ProductItem/ProductItem';
+import ProductSlice from '../../Redux/Slices/ProductSlice';
+import PaginationSlice from '../../Redux/Slices/PaginationSlice';
+import { 
+  ProductsContainer, PaginationContainer, LeftButton, RightButton, 
+  NoProductsFoundContainer, Loader, NoProductsFoundHeading, 
+  NoProductsFoundImage, NoProductsFoundDescription 
+} from './styledComponents';
+
 const productActions = ProductSlice.actions;
 const paginationActions = PaginationSlice.actions;
 
-function Product() {
+const Product = () => {
   const dispatch = useDispatch();
   const reduxProductsData = useSelector((store) => store.productState);
   const paginationData = useSelector((store) => store.paginationState);
@@ -18,7 +23,7 @@ function Product() {
   const { pageNumber, startIndex, endIndex, pageLength } = paginationData;
 
   const totalPagesInHome = Math.ceil(productsData.length / pageLength);
-  const [filteredProducts, setFilteredProducts] = useState(productsData);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   // Fetch products on mount
   useEffect(() => {
@@ -27,6 +32,7 @@ function Product() {
         dispatch(productActions.setLoading(true));
         const fetchingData = await fetch("https://vs-mart-backend-project-3.onrender.com/products");
         const result = await fetchingData.json();
+
         const data = result.productsData.map((product) => ({
           id: product._id,
           productName: product.product_name,
@@ -38,43 +44,41 @@ function Product() {
           details: product.price
         }));
 
-        dispatch(productActions.setLoading(false));
         dispatch(productActions.setProductsData(data));
-      } catch (err) {
-        dispatch(productActions.setLoading(false));
+      } catch (error) {
         dispatch(productActions.setErr(true));
+      } finally {
+        dispatch(productActions.setLoading(false));
       }
     };
 
     fetchingProductsData();
   }, [dispatch]);
 
-  // Filter by search value
+  // Apply search, category & price filters
   useEffect(() => {
-    const filtered = searchValue
-      ? productsData.filter((product) => product.productName.toLowerCase().includes(searchValue.toLowerCase()))
-      : productsData;
+    let filtered = [...productsData];
+
+    if (searchValue) {
+      filtered = filtered.filter((product) =>
+        product.productName.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    if (category) {
+      filtered = filtered.filter((product) =>
+        product.category.toLowerCase().includes(category.toLowerCase())
+      );
+    }
+
+    if (priceRange) {
+      filtered = filtered.sort((a, b) =>
+        priceRange === "low" ? a.price - b.price : b.price - a.price
+      );
+    }
 
     setFilteredProducts(filtered);
-  }, [searchValue, productsData]);
-
-  // Filter by category
-  useEffect(() => {
-    const filtered = category
-      ? productsData.filter((product) => product.category.toLowerCase().includes(category.toLowerCase()))
-      : productsData;
-
-    setFilteredProducts(filtered);
-  }, [category, productsData]);
-
-  // Sort by price
-  const sortedProducts = useMemo(() => {
-    if (!priceRange) return filteredProducts;
-
-    return [...filteredProducts].sort((a, b) =>
-      priceRange === "low" ? a.price - b.price : b.price - a.price
-    );
-  }, [priceRange, filteredProducts]);
+  }, [searchValue, category, priceRange, productsData]);
 
   // Handle pagination updates
   useEffect(() => {
@@ -82,53 +86,63 @@ function Product() {
     dispatch(paginationActions.setEndIndex(pageNumber * pageLength));
   }, [pageNumber, pageLength, dispatch]);
 
-  const paginatedProducts = useMemo(() => sortedProducts.slice(startIndex, endIndex), [sortedProducts, startIndex, endIndex]);
-  const imageUrl = "https://img.freepik.com/premium-vector/vector-illustration-about-concept-no-items-found-no-results-found_675567-6665.jpg?semt=ais_hybrid"
-  const NoProductsFound = ()=>{
-    return(
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice(startIndex, endIndex),
+    [filteredProducts, startIndex, endIndex]
+  );
+
+  // No Products Found Component
+  const NoProductsFound = () => {
+    return (
       <NoProductsFoundContainer>
-        <NoProductsFoundImage src = {imageUrl} />
-        <NoProductsFoundHeading>
-          No products found
-        </NoProductsFoundHeading>
+        <NoProductsFoundImage src="https://img.freepik.com/premium-vector/vector-illustration-about-concept-no-items-found-no-results-found_675567-6665.jpg?semt=ais_hybrid" />
+        <NoProductsFoundHeading>No products found</NoProductsFoundHeading>
         <NoProductsFoundDescription>
-          Sorry, we don't fetched the products on your inputs.
+          Sorry, we couldn’t fetch any products based on your inputs.
         </NoProductsFoundDescription>
       </NoProductsFoundContainer>
-    )
+    );
+  };
+
+  // Loading View
+  if (loading) {
+    return (
+      <Loader>
+        {/* <Loading /> */}
+        <h3>Loading...</h3>
+      </Loader>
+    );
   }
-  const LoadingView = loading && <>
-    <h1>Loading</h1>
-  </>
+
   return (
     <>
-      {paginatedProducts.length === 0 ? NoProductsFound() : <ProductsContainer>
-       {loading && 
-          <>
-            <Loader>
+      {paginatedProducts.length === 0 ? (
+        <NoProductsFound />
+      ) : (
+        <ProductsContainer>
+          {paginatedProducts.map((product) => (
+            <ProductItem productData={product} key={product.id} />
+          ))}
 
-                <Loading />
-            </Loader>
-          </>
-       }
-      {paginatedProducts.map((product) => (
-        <ProductItem productData={product} key={product.id} />
-      ))}
-      
-      <PaginationContainer>
-        <LeftButton onClick={() => dispatch(paginationActions.setPageNumber(pageNumber - 1))} disabled={pageNumber === 1}>
-          <FaMinus />
-        </LeftButton>
-        <span>{pageNumber}</span>
-        <RightButton onClick={() => dispatch(paginationActions.setPageNumber(pageNumber + 1))} disabled={pageNumber === totalPagesInHome}>
-          <FaPlus />
-        </RightButton>
-      </PaginationContainer>
-      </ProductsContainer>
-      }
+          <PaginationContainer>
+            <LeftButton
+              onClick={() => dispatch(paginationActions.setPageNumber(pageNumber - 1))}
+              disabled={pageNumber === 1}
+            >
+              <FaMinus />
+            </LeftButton>
+            <span>{pageNumber}</span>
+            <RightButton
+              onClick={() => dispatch(paginationActions.setPageNumber(pageNumber + 1))}
+              disabled={pageNumber === totalPagesInHome}
+            >
+              <FaPlus />
+            </RightButton>
+          </PaginationContainer>
+        </ProductsContainer>
+      )}
     </>
-    
   );
-}
+};
 
 export default Product;
