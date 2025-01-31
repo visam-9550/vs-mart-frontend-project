@@ -131,3 +131,15 @@ export const HRLine = styled.hr`
     border-width: 2px;
     border-color: black;
 `
+export const ShareButton = styled.button`
+    margin-right: 20px;
+    background-color:rgb(47, 105, 143);
+    border-radius: 5px;
+    font-weight: 700;
+    font-family: Roboto;
+    font-size: 14px;
+    outline: none;
+    &:active{
+        background-color: black;
+    }
+`

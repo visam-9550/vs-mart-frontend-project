@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import ProductItem from '../ProductItem/ProductItem'
 import Cookies from "js-cookie"
 import CartSlice from '../../Redux/Slices/CartSlice'
+import { IoShareOutline } from "react-icons/io5";
 import { ProductItemDetailsContainer, 
     ProductImage, 
     ProductName, 
@@ -20,7 +21,8 @@ import { ProductItemDetailsContainer,
     EmptySimillarProductsHeading,
     EmptySimillarProductsImage,
     SimillarProductsContainer,
-    HRLine
+    HRLine,
+    ShareButton
  } from './styledComponents'
  import { useDispatch, useSelector } from 'react-redux'
  const CartActions = CartSlice.actions
@@ -144,9 +146,9 @@ function ProductItemDetails() {
                 <Category> Category:- {data.category}</Category>
                 <Details>Details of product:- {data.details}</Details>
                 <StockAvailable>{data.available}</StockAvailable>
-                <button onClick = {clickOnShare}>
-                    share
-                </button>
+                <ShareButton onClick = {clickOnShare}>
+                    <IoShareOutline />
+                </ShareButton>
                 <AddToCart onClick = {() =>{clickOnCartButton(data._id)}}>Add to cart</AddToCart>
             </div>
         </Container>

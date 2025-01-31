@@ -11,6 +11,7 @@ import {
   NoProductsFoundImage, NoProductsFoundDescription 
 } from './styledComponents';
 
+
 const productActions = ProductSlice.actions;
 const paginationActions = PaginationSlice.actions;
 
