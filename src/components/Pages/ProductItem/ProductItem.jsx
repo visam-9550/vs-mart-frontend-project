@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import {WhatsappShareButton, WhatsappIcon} from "react-share"
 import { ProductItemContainer, ProductImage, ProductName, Price , Brand,GetMoreContainer,  GetMore } from './styledComponents'
 function ProductItem(props) {
   const productData = props

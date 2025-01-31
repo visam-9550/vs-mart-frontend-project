@@ -117,6 +117,22 @@ function ProductItemDetails() {
     }
     useEffect(()=>{fetchingData()}, [id])
     // console.log(simillarProducts, "simillar products")
+    const pageUrl = window.location.href
+    const clickOnShare = async()=>{
+        if (navigator.share) {
+            try {
+              await navigator.share({
+                title: `${data.product_name} Recipe`,
+                text: `Try this delicious ${data.product_name} recipe!`,
+                url: pageUrl,
+              });
+            } catch (error) {
+              console.error("Error sharing:", error);
+            }
+          } else {
+            alert("Your browser does not support Web Share API.");
+          }
+    }
   return (
     <ProductItemDetailsContainer>
         <Container>
@@ -128,6 +144,9 @@ function ProductItemDetails() {
                 <Category> Category:- {data.category}</Category>
                 <Details>Details of product:- {data.details}</Details>
                 <StockAvailable>{data.available}</StockAvailable>
+                <button onClick = {clickOnShare}>
+                    share
+                </button>
                 <AddToCart onClick = {() =>{clickOnCartButton(data._id)}}>Add to cart</AddToCart>
             </div>
         </Container>
